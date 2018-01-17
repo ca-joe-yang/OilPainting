@@ -11,11 +11,10 @@ height = color_image.shape[0]
 width  = color_image.shape[1]
 channel = color_image.shape[2]
 
-R = 4
-
 gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
 oil_image = np.zeros((height, width, channel))
 
+R = 4
 stroke_mask = []
 for y in range(-R, R):
     for x in range(-R, R):
@@ -23,8 +22,9 @@ for y in range(-R, R):
             stroke_mask.append( (y,x) )
 
 for y in range(height):
-    print(y)
     for x in range(width):
+        progress = np.round(100*(y*width+x)/(width*height), 2)
+        print( "Progress: ", str(progress)+"%", end='\r' )
         local_histogram = np.zeros(256)
         local_channel_count = np.zeros((channel, 256))
         for dy,dx in stroke_mask:
@@ -42,6 +42,7 @@ for y in range(height):
         for c in range(channel):
             oil_image[y,x,c] = local_channel_count[c, max_intensity] / max_intensity_count
 
+print()
 oil_image = oil_image.astype('int')
 cv2.imwrite("result.jpg", oil_image)
 

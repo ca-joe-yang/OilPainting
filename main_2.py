@@ -11,32 +11,22 @@ height = color_image.shape[0]
 width  = color_image.shape[1]
 channel = color_image.shape[2]
 
-R = 4
-
 gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-oil_image = np.zeros((height, width, channel))
+
 
 M_0 = np.average(gray_image)
 N = 32
-L = 8
 threshold = 0.2
-
-def moment(x,y,r,angle):
-    s = 0
-    xx = x + int(r * np.cos(angle))
-    yy = y + int(r * np.sin(angle))
-    if yy < 0 or yy >= height or xx <= 0  or xx >= width:
-        s = gray_image[yy, xx]
-    return s
 
 local_CLD = np.zeros((height, width, N))
 for i in range(N):
     angle = i * 2 * np.pi / N
     for y in range(height):
-        print(i, y)
         for x in range(width):
+            progress = np.round(100*(i*height*width+y*width+x)/(N*width*height), 2)
+            print( "Progress 1: ", str(progress)+"%", end='\r' )
             l = 0
-            s = gray_image[y, x]
+            s = gray_image[y, x].astype(float)
             while(True):
                 l += 1
                 xx = x + int(l * np.cos(angle))
@@ -46,16 +36,18 @@ for i in range(N):
                 if (s/l - M_0) / M_0 <= threshold:
                     local_CLD[y,x,i] = l
                     break
-
+L = 8
 brushstroke_size = np.zeros((height, width))
 for y in range(height):
     for x in range(width):
         brushstroke_size[y,x] = N * L / np.sum(local_CLD[y,x])
 
+oil_image = np.zeros((height, width, channel))
 for y in range(height):
-    print(y)
     for x in range(width):
-        R = int(brushstroke_size[y,x])
+        progress = np.round(100*(y*width+x)/(width*height), 2)
+        print( "Progress 2: ", str(progress)+"%", end='\r' )
+        R = int(np.ceil(brushstroke_size[y,x]))
         local_histogram = np.zeros(256)
         local_channel_count = np.zeros((channel, 256))
         for dy in range(-R, R):
@@ -78,3 +70,4 @@ for y in range(height):
 
 oil_image = oil_image.astype('int')
 cv2.imwrite("result.jpg", oil_image)
+cv2.imwrite("result1.jpg", oil_image[50:100, 50:150])
