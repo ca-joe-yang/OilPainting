@@ -36,7 +36,7 @@ for i in range(N):
                 if (s/l - M_0) / M_0 <= threshold:
                     local_CLD[y,x,i] = l
                     break
-L = 8
+L = 4
 brushstroke_size = np.zeros((height, width))
 for y in range(height):
     for x in range(width):
